@@ -8,7 +8,7 @@
 
 .rs-wrap:after,
 .rs-slider:after,
-.rs-thumbwrap:after,
+.rs-thumb-wrap:after,
 .rs-arrows:after,
 .rs-caption:after {
     content: ".";
@@ -32,7 +32,6 @@
 
 .rs-slider > li {
     list-style: none;
-    filter: alpha(opacity=0);
     opacity: 0;
     width: 100%;
     height: 100%;
@@ -45,9 +44,6 @@
     .rs-slider > li > a {
         padding: 0;
         background: none;
-        -webkit-border-radius: 0;
-        -moz-border-radius: 0;
-        border-radius: 0;
     }
 
     .rs-slider > li img {
@@ -65,8 +61,6 @@
         display: block;
         float: left;
         position: relative;
-        -moz-box-sizing: border-box;
-        -webkit-box-sizing: border-box;
         box-sizing: border-box;
     }
 
@@ -77,15 +71,89 @@
             -ms-interpolation-mode: bicubic;
         }
 
-.rs-thumbwrap > a:first-child { margin-left: 0!important }
+.rs-thumb-wrap > a:first-child { margin-left: 0!important }
+
+
+/* ===[ Pager Links ]=== */
+
+.rs-pager-wrap { *zoom: 1 }
+
+    .rs-pager-wrap > a {
+        display: block;
+        float: left;
+        position: relative;
+        box-sizing: border-box;
+    }
+
+
+.rs-pager-wrap > a:first-child { margin-left: 0!important }
 
 /* ===[ Arrows ]=== */
+.rs-arrows {
+	position: absolute;
+	bottom: 50%;
+	width: 100%;
+}
 
-.rs-arrows .rs-next,
-.rs-arrows .rs-prev { z-index: 1 }
+    .rs-arrows .rs-next,
+    .rs-arrows .rs-prev {
+        width: 42px;
+        height: 42px;
+        display: block;
+        float: left;
+        margin: 10px 0 10px 0;
+        position: relative;
+        text-shadow: 0 -1px 0 #000;
+        padding: 0 2px 2px 0;
+        background: rgba(0, 0, 0, .1);
+        background: linear-gradient(top, rgba(0, 0, 0, .1), rgba(0, 0, 0, .2));
+     
+        box-shadow: 0 1px 0 rgba(255, 255, 255, .1), 0 1px 1px rgba(255, 255, 255, 0) inset;
+    }
+
 
 .rs-arrows:hover .rs-next,
-.rs-arrows:hover .rs-prev { z-index: 2 }
+.rs-arrows:hover .rs-prev {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .15), 0 1px 1px rgba(255, 255, 255, .05) inset;
+}
+
+.rs-arrows .rs-next:active,
+.rs-arrows .rs-prev:active {
+    border-color: #292b2d;
+    border-color: rgba(0, 0, 0, .45);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, .7) inset;
+}
+
+.rs-arrows .rs-next {
+    border-left: 0!important;
+	float: right!important;
+}
+
+.rs-arrows .rs-next:before,
+.rs-arrows .rs-prev:before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid #c6c8c9;
+    border-left: 10px solid rgba(255, 255, 255, .7);
+    position: absolute;
+    top: 11px;
+    left: 16px;
+}
+
+.rs-arrows .rs-prev:before {
+    border-left: none;
+    border-right: 10px solid #c6c8c9;
+    border-right: 10px solid rgba(255, 255, 255, .7);
+}
+
+.rs-arrows .rs-prev:hover:before { border-right: 10px solid #fff }
+.rs-arrows .rs-next:hover:before { border-left: 10px solid #fff }
+.rs-arrows .rs-prev:active:before { border-right: 10px solid #8acdf3 }
+.rs-arrows .rs-next:active:before { border-left: 10px solid #8acdf3 }
+
 
 /* ===[ Captions ]=== */
 
@@ -93,8 +161,6 @@
     position: absolute;
     max-height: 100%;
     overflow: auto;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     bottom: 0;
     left: 0;
@@ -120,8 +186,6 @@
 .rs-caption.rs-bottom-right {
     right: 0;
     left: auto;
-    border-bottom: none;
-    border-right: none;
 }
 
 .rs-caption.rs-top {

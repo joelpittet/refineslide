@@ -17,8 +17,10 @@
 		transition            : 'cubeV',  // String (default 'cubeV'): Transition type ('random', 'cubeH', 'cubeV', 'fade', 'sliceH', 'sliceV', 'slideH', 'slideV', 'scale', 'blockScale', 'kaleidoscope', 'fan', 'blindH', 'blindV')
 		fallback3d            : 'sliceV', // String (default 'sliceV'): Fallback for browsers that support transitions, but not 3d transforms (only used if primary transition makes use of 3d-transforms)
 		useThumbs             : true,     // Bool (default true): Navigation type thumbnails
-		useArrows             : false,    // Bool (default false): Navigation type previous and next arrows
 		thumbMargin           : 3,        // Int (default 3): Percentage width of thumb margin
+		useArrows             : false,    // Bool (default false): Navigation type previous and next arrows
+		usePager              : false,    // Bool (default false): Navigation type numbered pager links
+		pagerMargin           : 3,        // Int (default 3): Percentage width of thumb margin
 		autoPlay              : false,    // Int (default false): Auto-cycle slider
 		delay                 : 5000,     // Int (default 5000) Time between slides in ms
 		transitionDuration    : 800,      // Int (default 800): Transition length in ms
@@ -26,6 +28,7 @@
 		keyNav                : true,     // Bool (default true): Use left/right arrow keys to switch slide
 		captionWidth          : 50,       // Int (default 50): Percentage of slide taken by caption
 		arrowTemplate         : '<div class="rs-arrows"><a href="#" class="rs-prev"></a><a href="#" class="rs-next"></a></div>', // String: The markup used for arrow controls (if arrows are used). Must use classes '.rs-next' & '.rs-prev'
+		pagerLinkTemplate     : '<a><span class="rs-page-link-label"></span></a>', // String: The markup used for pager links (if pager is used). 
 		onInit                : function () {}, // Func: User-defined, fires with slider initialisation
 		onChange              : function () {}, // Func: User-defined, fires with transition start
 		afterChange           : function () {}  // Func: User-defined, fires after transition end
@@ -129,6 +132,11 @@
                 this.setThumbs(clones);
             }
 
+            // Use the clones generated in this.init() to make page links
+            if (this.settings['usePager']) {
+                this.setPager();
+            }
+
             // Display first slide
             this.$currentSlide.css({'opacity' : 1, 'z-index' : 2});
 
@@ -152,6 +160,43 @@
             $('.rs-prev', this.$sliderWrap).on('click', function (e) {
                 e.preventDefault();
                 _this.prev();
+            });
+        }
+
+        ,setPager:function () {
+
+            var _this = this,
+                // Set percentage width (minus user-defined margin) to span width of slider
+                width = (100 - ((this.totalSlides - 1) * this.settings['pagerMargin'])) / this.totalSlides + '%';
+
+
+
+            // <div> wrapper to contain pager links
+            this.$pagerWrap = $('<div class="rs-pager-wrap" />').appendTo(this.$sliderWrap);
+
+
+            // Loop to apply pager link widths/margins to <a> wraps, appending an image clone to each
+            for (var i = 0; i < this.totalSlides; i++) {
+                var $pagerLink = $(this.settings['pagerLinkTemplate']).addClass('rs-page-link-'+ i).css({'width' : width, 'marginLeft' : this.settings['pagerMargin'] + '%'}).attr({'href' : '#'});
+                $pagerLink.find('.rs-page-link-label').text(i + 1);
+                $pagerLink.appendTo(this.$pagerWrap);
+            }
+
+            // Safety margin to stop IE7 wrapping the pager link (no visual effect in other browsers)
+            this.$pagerWrap.children().last().css('margin-right', -10);
+
+            // Add active class to starting slide's respective link
+            $(this.$pagerWrap.find('a')[this.settings['startSlide']]).addClass('active');
+
+            // Listen for click events on links
+            this.$pagerWrap.on('click', 'a', function (e) {
+                e.preventDefault();
+
+                // Get identifier from link class
+                var cl = parseInt($(this).attr('class').split('-')[3]);
+
+                // Call transition
+                _this.transition(cl);
             });
         }
 
@@ -232,7 +277,7 @@
                 $captions = this.$slides.find('.rs-caption');
 
             // User-defined caption width
-            $captions.css({'width' : _this.settings['captionWidth'] + '%', 'opacity' : 0});
+            //$captions.css({'width' : _this.settings['captionWidth'] + '%', 'opacity' : 0});
 
             // Display starting slide's caption
             this.$currentSlide.find('.rs-caption').css({'opacity' : 1});
@@ -273,6 +318,13 @@
                         this.$thumbWrap.find('a').removeClass('active');
                         $(this.$thumbWrap.find('a')[slideNum]).addClass('active');
                     }
+
+                    // If pager exist, revise active class states
+                    if (this.settings['usePager']) {
+                        this.$pagerWrap.find('a').removeClass('active');
+                        $(this.$pagerWrap.find('a')[slideNum]).addClass('active');
+                    }
+
                 }
             }
         }
