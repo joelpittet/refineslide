@@ -16,7 +16,8 @@
 	var defaults = {
 		transition            : 'cubeV',  // String (default 'cubeV'): Transition type ('random', 'cubeH', 'cubeV', 'fade', 'sliceH', 'sliceV', 'slideH', 'slideV', 'scale', 'blockScale', 'kaleidoscope', 'fan', 'blindH', 'blindV')
 		fallback3d            : 'sliceV', // String (default 'sliceV'): Fallback for browsers that support transitions, but not 3d transforms (only used if primary transition makes use of 3d-transforms)
-		controls              : 'thumbs', // String (default 'thumbs'): Navigation type ('thumbs', 'arrows', null)
+		useThumbs             : true,     // Bool (default true): Navigation type thumbnails
+		useArrows             : false,    // Bool (default false): Navigation type previous and next arrows
 		thumbMargin           : 3,        // Int (default 3): Percentage width of thumb margin
 		autoPlay              : false,    // Int (default false): Auto-cycle slider
 		delay                 : 5000,     // Int (default 5000) Time between slides in ms
@@ -60,7 +61,7 @@
             this.captions();
 
             // Setup arrow navigation
-            if (this.settings['controls'] === 'arrows') this.setArrows();
+            if (this.settings['useArrows']) this.setArrows();
 
             // Setup keyboard navigation
             if (this.settings['keyNav']) this.setKeys();
@@ -115,7 +116,7 @@
                 widths.push($(clones[i]).width());
 
                 // If not needed for thumbnails, remove image clones from the DOM
-                if (_this.settings['controls'] !== 'thumbs') {
+                if (!_this.settings['useThumbs']) {
                     $(clones[i]).remove();
                 }
             }
@@ -124,7 +125,7 @@
             this.$sliderWrap.css('width', Math.floor.apply(Math, widths) + padding);
 
             // Use the clones generated in this.init() to make thumbnails
-            if (this.settings['controls'] === 'thumbs') {
+            if (this.settings['useThumbs']) {
                 this.setThumbs(clones);
             }
 
@@ -268,7 +269,7 @@
                     new Transition(this, this.settings['transition'], forward);
 
                     // If thumbnails exist, revise active class states
-                    if (this.settings['controls'] === 'thumbs') {
+                    if (this.settings['useThumbs']) {
                         this.$thumbWrap.find('a').removeClass('active');
                         $(this.$thumbWrap.find('a')[slideNum]).addClass('active');
                     }
