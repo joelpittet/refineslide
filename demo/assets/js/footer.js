@@ -1,4 +1,22 @@
 $(document).ready(function() {
+    
+    
+    
+    function Timer(callback, delay) {
+        var timerId, pagerStartTime, timeRemaining = delay;
+
+        this.pause = function() {
+            window.clearTimeout(timerId);
+            timeRemaining -= new Date() - pagerStartTime;
+        };
+
+        this.resume = function() {
+            pagerStartTime = new Date();
+            timerId = window.setTimeout(callback, timeRemaining);
+        };
+    }
+    
+    
     $('#images').refineSlide({
 	
 	
@@ -12,13 +30,13 @@ $(document).ready(function() {
 		pagerMargin           : 0,        // Int (default 3): Percentage width of thumb margin
 		autoPlay              : true,    // Int (default false): Auto-cycle slider
 		delay                 : 5000,     // Int (default 5000) Time between slides in ms
-		transitionDuration    : 800,      // Int (default 800): Transition length in ms
+		transitionDuration    : 700,      // Int (default 800): Transition length in ms
 		startSlide            : 0,        // Int (default 0): First slide
 		keyNav                : true,     // Bool (default true): Use left/right arrow keys to switch slide
 		// captionWidth          : 25,       // Int (default 50): Percentage of slide taken by caption
 		// arrowTemplate         : '<div class="rs-arrows"><a href="#" class="rs-prev"></a><a href="#" class="rs-next"></a></div>', // String: The markup used for arrow controls (if arrows are used). Must use classes '.rs-next' & '.rs-prev'
-		onInit                : function () {}, // Func: User-defined, fires with slider initialisation
-		onChange              : function () {}, // Func: User-defined, fires with transition start
+		//onInit                : function () {}, // Func: User-defined, fires with slider initialisation
+		//onChange              : function () {}, // Func: User-defined, fires with transition start
 		afterChange           : function () {},  // Func: User-defined, fires after transition end
 
         onInit : function () {
@@ -47,9 +65,37 @@ $(document).ready(function() {
                 }
             }
 
+            
+
             support(this.slider.cssTransforms3d, '3d');
             support(this.slider.cssTransitions, 'css');
         },
-        controls : 'arrows'
+        onInit: function () {
+                
+            this.timer = new Timer(function(){
+                console.log('callback resumed');
+                
+            }, this.delay);
+            
+            
+            
+        },
+        onChange : function() {
+            
+           // console.log(this.timer);
+           this.timer.pause();
+                
+            /*var $pagerStartTime = new date().getTime();
+            var pauseLeftOverTime;
+            
+            //timePercentage = timer/delay;
+            //widthPercentage = timerWidth/pagerWidth;
+            //pauseLeftOver = delay-delay*timePercentage;*/
+            console.log('Made it');    
+        },
+        afterChange: function() {
+            
+            this.timer.resume();
+        }
     });
 });

@@ -330,6 +330,7 @@
         }
     };
 
+
 	// Transition object constructor
 	function Transition(RS, transition, forward) {
 		this.RS = RS; // RS (RefineSlide) object
