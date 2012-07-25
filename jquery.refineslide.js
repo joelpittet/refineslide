@@ -48,7 +48,7 @@
 		this.$sliderWrap        = this.$slider.wrap('<div class="rs-wrap" />').parent();      // Elem: Slider wrapper div
 		this.$sliderBG          = this.$slider.wrap('<div class="rs-slide-bg" />').parent();  // Elem: Slider background (useful for styling & essential for cube transitions)
 		this.settings['slider'] = this;  // Make slider object accessible to client call code with 'this.slider' (there's probably a better way to do this)
-
+        this.timer;
 		this.init();  // Call RS initialisation method
 	}
 
@@ -80,12 +80,16 @@
 
                 // Listen for slider mouseover
                 this.$slider.on('mouseenter', function () {
+                    console.log('----Mouse moved onto slider (hovering state)----');
                     clearTimeout(_this.cycling); // Pause if hovered
+                    _this.timer.pause();// Pause if hovered
                 });
 
                 // Listen for slider mouseout
                 this.$slider.on('mouseleave', function () {
+                    console.log('----Mouse removed from slider (hovering state)----');
                     _this.setAutoPlay(); // Resume slideshow
+                    _this.timer.resume();// Resume slideshow
                 });
             }
 

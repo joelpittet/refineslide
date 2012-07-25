@@ -1,21 +1,36 @@
-$(document).ready(function() {
+$(document).ready(function() { 
     
-    
-    
+    //Timer to manage pause and resume
     function Timer(callback, delay) {
-        var timerId, pagerStartTime, timeRemaining = delay;
+            var timerId, 
+                startTime = new Date(), 
+                timeRemaining = delay;
+            
+            this.pause = function() {//Pause timer
+                window.clearTimeout(timerId);
+                var pauseTime = new Date();
+                var timeDifference = pauseTime - startTime;
+                console.log('pauseTime', pauseTime, 'startTime', startTime );       
+                console.log('timeRemaining', timeRemaining, 'timeDifference', timeDifference );
+                
+                timeRemaining = timeRemaining - timeDifference;
+                //timeRemaining -= delay - timeDifference;
+                console.log('timeRemaining result', timeRemaining);
+                console.log('Paused');
+            };
 
-        this.pause = function() {
-            window.clearTimeout(timerId);
-            timeRemaining -= new Date() - pagerStartTime;
-        };
-
-        this.resume = function() {
-            pagerStartTime = new Date();
-            timerId = window.setTimeout(callback, timeRemaining);
-        };
-    }
-    
+            this.resume = function() {//Resume timer
+                timerId = window.setTimeout(callback, timeRemaining);
+                startTime = new Date();
+                console.log('Resumed');
+             };
+                        
+            this.reset = function() {//Resets the timmer value
+                timeRemaining = delay;
+                startTime = new Date();
+                console.log('Reseting', timeRemaining);
+            };
+     }    
     
     $('#images').refineSlide({
 	
@@ -35,13 +50,13 @@ $(document).ready(function() {
 		keyNav                : true,     // Bool (default true): Use left/right arrow keys to switch slide
 		// captionWidth          : 25,       // Int (default 50): Percentage of slide taken by caption
 		// arrowTemplate         : '<div class="rs-arrows"><a href="#" class="rs-prev"></a><a href="#" class="rs-next"></a></div>', // String: The markup used for arrow controls (if arrows are used). Must use classes '.rs-next' & '.rs-prev'
-		//onInit                : function () {}, // Func: User-defined, fires with slider initialisation
-		//onChange              : function () {}, // Func: User-defined, fires with transition start
-		afterChange           : function () {},  // Func: User-defined, fires after transition end
+		// onInit                : function () {}, // Func: User-defined, fires with slider initialisation
+		// onChange              : function () {}, // Func: User-defined, fires with transition start
+		// afterChange           : function () {},  // Func: User-defined, fires after transition end
 
         onInit : function () {
             var slider = this.slider,
-               $triggers = $('.translist').find('> li > a');
+            $triggers = $('.translist').find('> li > a');
 
             $triggers.parent().find('a[href="#_'+ this.slider.settings['transition'] +'"]').addClass('active');
 
@@ -53,6 +68,7 @@ $(document).ready(function() {
                     $(this).addClass('active');
                     slider.settings['transition'] = $(this).attr('href').replace('#_', '');
                 }
+  
             });
 
             function support(result, bobble) {
@@ -65,37 +81,34 @@ $(document).ready(function() {
                 }
             }
 
-            
-
             support(this.slider.cssTransforms3d, '3d');
             support(this.slider.cssTransitions, 'css');
-        },
-        onInit: function () {
-                
-            this.timer = new Timer(function(){
+            
+            //Luke's Code starts
+             console.log('----Creating new timer and resuming----');           
+            this.slider.timer = new Timer(function(){//Initiate the Timer
                 console.log('callback resumed');
-                
-            }, this.delay);
+            }, this.delay);  
             
-            
-            
+            this.slider.timer.resume();
+
         },
+
         onChange : function() {
-            
-           // console.log(this.timer);
-           this.timer.pause();
-                
-            /*var $pagerStartTime = new date().getTime();
+            console.log('----Transition start, end of slide duration/delay----');             
+            this.slider.timer.pause();//when the slide transition is on pause timer
+                        
+            /*var $startTime = new date().getTime();
             var pauseLeftOverTime;
-            
             //timePercentage = timer/delay;
             //widthPercentage = timerWidth/pagerWidth;
-            //pauseLeftOver = delay-delay*timePercentage;*/
-            console.log('Made it');    
+            //pauseLeftOver = delay-delay*timePercentage;*/   
         },
         afterChange: function() {
+            console.log('----Start new slide, end transition----');            
+            this.slider.timer.reset();//Reset timer when the new slide starts
+            this.slider.timer.resume();//when the new slide starts resume timer
             
-            this.timer.resume();
         }
     });
 });
