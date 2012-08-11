@@ -28,7 +28,7 @@
 		keyNav                : true,     // Bool (default true): Use left/right arrow keys to switch slide
 		captionWidth          : 50,       // Int (default 50): Percentage of slide taken by caption
 		arrowTemplate         : '<div class="rs-arrows"><a href="#" class="rs-prev"></a><a href="#" class="rs-next"></a></div>', // String: The markup used for arrow controls (if arrows are used). Must use classes '.rs-next' & '.rs-prev'
-		pagerLinkTemplate     : '<a><span class="rs-page-link-label"></span></a>', // String: The markup used for pager links (if pager is used). 
+		pagerLinkTemplate     : '<a><span class="rs-page-link-label"></span><span class="rs-page-timer"></span></a>', // String: The markup used for pager links (if pager is used). 
 		onInit                : function () {}, // Func: User-defined, fires with slider initialisation
 		onChange              : function () {}, // Func: User-defined, fires with transition start
 		afterChange           : function () {}  // Func: User-defined, fires after transition end
@@ -49,6 +49,12 @@
 		this.$sliderBG          = this.$slider.wrap('<div class="rs-slide-bg" />').parent();  // Elem: Slider background (useful for styling & essential for cube transitions)
 		this.settings['slider'] = this;  // Make slider object accessible to client call code with 'this.slider' (there's probably a better way to do this)
         this.timer;
+
+		
+		// Exit if only one slide;
+		if (this.totalSlides <= 1) return;
+		
+		
 		this.init();  // Call RS initialisation method
 	}
 
@@ -74,24 +80,7 @@
                 $(this.$slides[i]).attr('class', 'rs-slide-' + i);
             }
 
-            // Setup slideshow
-            if (this.settings['autoPlay']) {
-                this.setAutoPlay();
-
-                // Listen for slider mouseover
-                this.$slider.on('mouseenter', function () {
-                    console.log('----Mouse moved onto slider (hovering state)----');
-                    clearTimeout(_this.cycling); // Pause if hovered
-                    _this.timer.pause();// Pause if hovered
-                });
-
-                // Listen for slider mouseout
-                this.$slider.on('mouseleave', function () {
-                    console.log('----Mouse removed from slider (hovering state)----');
-                    _this.setAutoPlay(); // Resume slideshow
-                    _this.timer.resume();// Resume slideshow
-                });
-            }
+      
 
             // Get the first image in each slide <li>
             var images = $(this.$slides).find('img:eq(0)').addClass('rs-slide-image'),
@@ -106,6 +95,26 @@
                 }
                 setTimeout(function () {
                     _this.setup(clones);
+                    
+                    
+                    // Setup slideshow
+                    if (_this.settings['autoPlay']) {
+                        _this.setAutoPlay();
+
+                        // Listen for slider mouseover
+                        _this.$slider.on('mouseenter', function () {
+                            // Pause if hovered
+                            _this.timer.pause();
+                        });
+
+                        // Listen for slider mouseout
+                        _this.$slider.on('mouseleave', function () {
+                            // Resume slideshow
+                            _this.timer.resume();
+                        });
+                    }
+                            
+                    
                 }, 0); // Webkit requires this instant timeout to avoid premature rendering
             });
         }
@@ -157,12 +166,14 @@
             // Fire next() method when clicked
             $('.rs-next', this.$sliderWrap).on('click', function (e) {
                 e.preventDefault();
+                _this.timer.reset();
                 _this.next();
             });
 
             // Fire prev() method when clicked
             $('.rs-prev', this.$sliderWrap).on('click', function (e) {
                 e.preventDefault();
+                _this.timer.reset();
                 _this.prev();
             });
         }
@@ -237,11 +248,29 @@
 
         ,setAutoPlay: function () {
             var _this = this;
-
-            // Set timeout to object property so it can be accessed/cleared externally
-            this.cycling = setTimeout(function () {
-                _this.next();
-            }, this.settings['delay']);
+            var timers = this.$pagerWrap.find('.rs-page-timer');
+            // Initiate the Timer
+            this.timer = new Timer({
+                delay: this.settings['delay'],
+                onEnd: function(timer) {
+                    console.log('onEnd');
+                    _this.next();
+                },
+                onPause: function(timer) {
+                    console.log('onPause');
+                    timers.stop();
+                },
+                onResume: function(timer) {
+                    console.log('onResume');
+                    $(timers[_this.currentPlace]).animate({width: '100%'}, {duration:timer.remaining});
+                },
+                onReset: function(timer) {
+                    console.log('onReset');
+                    timers.stop().css({width: '0'});
+                }
+            });
+            this.timer.resume();
+            
         }
 
         ,setThumbs: function (clones) {
@@ -311,6 +340,9 @@
                     // Assign next slide index prop (int)
                     this.currentPlace = slideNum;
 
+                    // when the slide starts it's transition pause the timer
+                    this.timer.pause();
+
                     // User-defined function, fires with transition
                     this.settings['onChange']();
 
@@ -333,6 +365,56 @@
             }
         }
     };
+
+    // Timer to manage pause and resume
+	function Timer(settings) {
+
+    	// Baked-in settings for extension
+    	var defaults = {
+    		delay    : 5000,            // Int (default 5000) 
+    		onPause  : function () {}, // Func: User-defined
+    		onResume : function () {}, // Func: User-defined
+    		onEnd    : function () {}, // Func: User-defined
+    		onReset  : function () {} // Func: User-defined
+    	};
+
+	    this.settings = $.extend({}, defaults, settings);    // Obj: Merged user settings/defaults
+		
+		
+		// Private 
+		var timerId, startTime = new Date(), _this = this;
+
+		// Public 
+		this.remaining = this.settings['delay'];
+
+		// Pause timer
+		this.pause = function() {
+            window.clearTimeout(timerId);
+			var pauseTime = new Date();
+			var timePastBy = pauseTime - startTime;
+			this.remaining = this.remaining - timePastBy;
+			if (this.remaining < 0) this.remaining = 0;
+			this.settings['onPause'](this);
+		};
+
+		// Resume timer from where it last left
+		this.resume = function() {
+		    window.clearTimeout(timerId);
+            timerId = window.setTimeout(function(){
+                _this.settings['onEnd'](_this);
+                _this.reset();
+            }, this.remaining);
+
+			startTime = new Date();
+			this.settings['onResume'](this);
+		 };
+	    
+		// Resets the remaining value to the timer's original delay
+		this.reset = function() {
+            this.remaining = this.settings['delay']; 
+            this.settings['onReset'](this);
+		};
+	}
 
 
 	// Transition object constructor
@@ -407,8 +489,12 @@
 
             // If slideshow is active, reset the timeout
             if (this.RS.settings['autoPlay']) {
-                clearTimeout(this.RS.cycling);
-                this.RS.setAutoPlay();
+                //clearTimeout(this.RS.cycling);
+                //this.RS.setAutoPlay();
+                // 
+
+                this.RS.timer.reset();//Reset timer when the new slide starts
+                this.RS.timer.resume();//when the new slide starts resume timer
             }
 
             // Assign new slide position
@@ -416,9 +502,10 @@
 
             // Remove RS obj inProgress flag (i.e. allow new Transition to be instantiated)
             this.RS.inProgress = false;
-
+            
             // User-defined function, fires after transition has ended
             this.RS.settings['afterChange']();
+            
         }
 
         ,fade: function () {

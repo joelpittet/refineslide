@@ -52,17 +52,15 @@
     }
 	.rs-pager-wrap > a span {
 		display: block;
-		padding: 5px;
 	}
 	.rs-pager-wrap > a .rs-page-link-label { 
 		margin-right: 1px;
+		padding: 5px;
 		padding-right: 0.25em;
 		background-color: rgba(182,182,182,0.85);
 		transition: background-color 1s ease;
 	}
 	
-	
-
 
 	.rs-pager-wrap > a:last-child .rs-page-link-label {
 		margin-right: 0;
@@ -74,11 +72,11 @@
 	}
 	
 	
-	.rs-pager-wrap > a:active .rs-page-link-label {
+	.rs-pager-wrap > a.active .rs-page-link-label {
 		background-color: rgba(112,112,112,0.85);
 		transition: background-color 1s ease;
 
-		background-image: url('../img/carousel/play-pause.png');
+		background-image: url(../img/carousel/play-pause.png);
 		background-repeat: no-repeat;
 		background-position: right -19px;
 		text-indent: 999em;
@@ -93,9 +91,31 @@
 
 
     .rs-pager-wrap > a:first-child { margin-left: 0!important }
+
+	.rs-page-timer {
+		overflow: hidden;
+		position: absolute;
+		bottom: 0;
+		width: 0;
+		height: 3px;
+		padding: 0;
+		background-color: #EE1C25;
+	}
+	
+
+
 /* ===[ Arrows ]=== */
 
-.rs-arrows { float: left }
+.rs-arrows { 
+	float: left;
+	opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.rs-wrap:hover .rs-arrows {
+	opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+}
 
     .rs-arrows .rs-next,
     .rs-arrows .rs-prev {
